@@ -72,12 +72,14 @@ def test_experiment_dataloader__non_batched(
             query,
             X_name="raw",
             obs_column_names=["label"],
+            shuffle=False,
             use_eager_fetch=use_eager_fetch,
         )
         dl = experiment_dataloader(dp)
         batches = list(dl)
-        assert all(X.shape == (3,) for X, _ in batches)
-        assert all(obs.shape == (1, 1) for _, obs in batches)
+        for X, obs in batches:
+            assert X.shape == (3,)
+            assert obs.shape == (1, 1)
 
         X, obs = batches[0]
         assert_array_equal(X, np.array([0, 1, 0], dtype=np.float32))
@@ -100,6 +102,7 @@ def test_experiment_dataloader__batched(
             query,
             X_name="raw",
             batch_size=3,
+            shuffle=False,
             use_eager_fetch=use_eager_fetch,
         )
         dl = experiment_dataloader(dp)

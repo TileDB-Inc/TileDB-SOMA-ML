@@ -17,7 +17,13 @@ from somacore import AxisQuery
 from tiledbsoma import Experiment
 from torch.utils.data._utils.worker import WorkerInfo
 
-from tests.utils import assert_array_equal, eager_lazy, init_world, pytorch_x_value_gen
+from tests.utils import (
+    assert_array_equal,
+    eager_lazy,
+    init_world,
+    pytorch_seq_x_value_gen,
+    pytorch_x_value_gen,
+)
 from tiledbsoma_ml.pytorch import (
     ExperimentAxisQueryIterable,
     ExperimentAxisQueryIterableDataset,
@@ -60,6 +66,7 @@ def test_non_batched(
             query,
             X_name="raw",
             obs_column_names=["label"],
+            shuffle=False,
             use_eager_fetch=use_eager_fetch,
             return_sparse_X=return_sparse_X,
         )
@@ -105,6 +112,7 @@ def test_uneven_soma_and_result_batches(
             X_name="raw",
             obs_column_names=["label"],
             batch_size=3,
+            shuffle=False,
             io_batch_size=2,
             use_eager_fetch=use_eager_fetch,
             return_sparse_X=return_sparse_X,
@@ -152,6 +160,7 @@ def test_batching__all_batches_full_size(
             X_name="raw",
             obs_column_names=["label"],
             batch_size=3,
+            shuffle=False,
             use_eager_fetch=use_eager_fetch,
             return_sparse_X=return_sparse_X,
         )
@@ -193,6 +202,7 @@ def test_soma_joinids(
             X_name="raw",
             obs_column_names=["soma_joinid", "label"],
             batch_size=3,
+            shuffle=False,
             use_eager_fetch=use_eager_fetch,
         )
         assert exp_data_pipe.shape == (1, 3)
@@ -222,6 +232,7 @@ def test_batching__partial_final_batch_size(
             X_name="raw",
             obs_column_names=["label"],
             batch_size=3,
+            shuffle=False,
             use_eager_fetch=use_eager_fetch,
             return_sparse_X=return_sparse_X,
         )
@@ -257,6 +268,7 @@ def test_batching__exactly_one_batch(
             X_name="raw",
             obs_column_names=["label"],
             batch_size=3,
+            shuffle=False,
             use_eager_fetch=use_eager_fetch,
         )
         assert exp_data_pipe.shape == (1, 3)
@@ -350,6 +362,7 @@ def test_distributed__returns_data_partition_for_rank(
             X_name="raw",
             obs_column_names=["soma_joinid"],
             io_batch_size=2,
+            shuffle=False,
         )
         batches = list(dp)
         soma_joinids = np.concatenate(
@@ -409,6 +422,7 @@ def test_distributed_and_multiprocessing__returns_data_partition_for_rank(
                         X_name="raw",
                         obs_column_names=["soma_joinid"],
                         io_batch_size=2,
+                        shuffle=False,
                     )
 
                     batches = list(dp)
@@ -418,3 +432,53 @@ def test_distributed_and_multiprocessing__returns_data_partition_for_rank(
                     ).tolist()
 
                     assert soma_joinids == expected_joinids
+
+
+@pytest.mark.parametrize(
+    "obs_range,var_range,X_value_gen", [(16, 1, pytorch_seq_x_value_gen)]
+)
+@pipeclasses
+def test__shuffle(PipeClass: PipeClassType, soma_experiment: Experiment) -> None:
+    with soma_experiment.axis_query(measurement_name="RNA") as query:
+        dp = PipeClass(
+            query,
+            X_name="raw",
+        )
+
+        batches = list(dp)
+        if PipeClass is ExperimentAxisQueryIterable:
+            assert all(np.squeeze(X, axis=0).shape == (1,) for X, _ in batches)
+        else:
+            assert all(X.shape == (1,) for X, _ in batches)
+        soma_joinids = [obs["soma_joinid"].iloc[0] for _, obs in batches]
+        X_values = [X[0].item() for X, _ in batches]
+
+        # same elements
+        assert set(soma_joinids) == set(range(16))
+        # not ordered! (...with a `1/16!` probability of being ordered)
+        assert soma_joinids != list(range(16))
+        # randomizes X in same order as obs
+        # note: X values were explicitly set to match obs_joinids to allow for this simple assertion
+        assert X_values == soma_joinids
+
+
+@pytest.mark.parametrize(
+    "obs_range,var_range,X_value_gen", [(6, 3, pytorch_x_value_gen)]
+)
+def test_experiment_axis_query_iterable_error_checks(
+    soma_experiment: Experiment,
+) -> None:
+    with soma_experiment.axis_query(measurement_name="RNA") as query:
+        dp = ExperimentAxisQueryIterable(
+            query,
+            X_name="raw",
+        )
+        with pytest.raises(NotImplementedError):
+            dp[0]
+
+        with pytest.raises(ValueError):
+            ExperimentAxisQueryIterable(
+                query,
+                obs_column_names=(),
+                X_name="raw",
+            )
