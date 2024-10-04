@@ -1282,7 +1282,7 @@ def _coo_to_csr_inner(
     # Reorganize all of the data. Side-effect: pointers shifted (reversed in the
     # subsequent section).
     #
-    # Method is concurrent (partioned by rows) if number of rows is greater
+    # Method is concurrent (partitioned by rows) if number of rows is greater
     # than 2**partition_bits. This partitioning scheme leverages the fact
     # that reads are much cheaper than writes.
     #
