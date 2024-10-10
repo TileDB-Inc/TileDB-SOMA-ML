@@ -15,12 +15,12 @@ import numpy.typing as npt
 import pandas as pd
 import pyarrow as pa
 import pytest
-import tiledbsoma as soma
 from pandas._testing import assert_frame_equal
 from scipy import sparse
 from scipy.sparse import coo_matrix, spmatrix
-from tiledbsoma import Experiment, _factory
-from tiledbsoma._collection import CollectionBase
+from somacore import AxisQuery
+from tiledbsoma import Experiment, Measurement
+from tiledbsoma._collection import Collection, CollectionBase
 from torch.utils.data._utils.worker import WorkerInfo
 
 from tiledbsoma_ml.pytorch import (
@@ -126,8 +126,8 @@ def soma_experiment(
     X_value_gen: XValueGen,
     obsp_layer_names: Sequence[str],
     varp_layer_names: Sequence[str],
-) -> soma.Experiment:
-    with soma.Experiment.create((tmp_path / "exp").as_posix()) as exp:
+) -> Experiment:
+    with Experiment.create((tmp_path / "exp").as_posix()) as exp:
         if isinstance(obs_range, int):
             obs_range = range(obs_range)
         if isinstance(var_range, int):
@@ -135,9 +135,9 @@ def soma_experiment(
 
         add_dataframe(exp, "obs", obs_range)
         ms = exp.add_new_collection("ms")
-        rna = ms.add_new_collection("RNA", soma.Measurement)
+        rna = ms.add_new_collection("RNA", Measurement)
         add_dataframe(rna, "var", var_range)
-        rna_x = rna.add_new_collection("X", soma.Collection)
+        rna_x = rna.add_new_collection("X", Collection)
         add_sparse_array(rna_x, "raw", obs_range, var_range, X_value_gen)
 
         if obsp_layer_names:
@@ -153,7 +153,7 @@ def soma_experiment(
                 add_sparse_array(
                     varp, varp_layer_name, obs_range, var_range, X_value_gen
                 )
-    return _factory.open((tmp_path / "exp").as_posix())
+    return Experiment.open((tmp_path / "exp").as_posix())
 
 
 @pytest.mark.parametrize(
@@ -396,7 +396,7 @@ def test_batching__empty_query_result(
     use_eager_fetch: bool,
 ) -> None:
     with soma_experiment.axis_query(
-        measurement_name="RNA", obs_query=soma.AxisQuery(coords=([],))
+        measurement_name="RNA", obs_query=AxisQuery(coords=([],))
     ) as query:
         exp_data_pipe = PipeClass(
             query,
