@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Optional, Sequence, Tuple
+from typing import Any, Callable, Optional, Sequence, Tuple, Type
 from unittest.mock import patch
 
 import numpy as np
@@ -34,11 +34,10 @@ assert_array_equal = partial(np.testing.assert_array_equal, strict=True)
 
 # These control which classes are tested (for most, but not all tests).
 # Centralized to allow easy add/delete of specific test parameters.
-PipeClassType = (
-    ExperimentAxisQueryIterable
-    | ExperimentAxisQueryIterDataPipe
-    | ExperimentAxisQueryIterableDataset
+IterableWrapperType = (
+    Type[ExperimentAxisQueryIterDataPipe] | Type[ExperimentAxisQueryIterableDataset]
 )
+PipeClassType = Type[ExperimentAxisQueryIterable] | IterableWrapperType
 PipeClasses = (
     ExperimentAxisQueryIterable,
     ExperimentAxisQueryIterDataPipe,
@@ -446,7 +445,7 @@ def test_batching__partial_soma_batches_are_concatenated(
     (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
 )
 def test_multiprocessing__returns_full_result(
-    PipeClass: ExperimentAxisQueryIterDataPipe | ExperimentAxisQueryIterableDataset,
+    PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
 ) -> None:
     """Tests the ExperimentAxisQueryIterDataPipe provides all data, as collected from multiple processes that are managed by a
@@ -587,7 +586,7 @@ def test_distributed_and_multiprocessing__returns_data_partition_for_rank(
     (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
 )
 def test_experiment_dataloader__non_batched(
-    PipeClass: ExperimentAxisQueryIterDataPipe | ExperimentAxisQueryIterableDataset,
+    PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
 ) -> None:
@@ -617,7 +616,7 @@ def test_experiment_dataloader__non_batched(
     (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
 )
 def test_experiment_dataloader__batched(
-    PipeClass: ExperimentAxisQueryIterDataPipe | ExperimentAxisQueryIterableDataset,
+    PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
 ) -> None:
@@ -648,7 +647,7 @@ def test_experiment_dataloader__batched(
     (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
 )
 def test_experiment_dataloader__batched_length(
-    PipeClass: ExperimentAxisQueryIterDataPipe | ExperimentAxisQueryIterableDataset,
+    PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
 ) -> None:
@@ -673,7 +672,7 @@ def test_experiment_dataloader__batched_length(
     (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
 )
 def test_experiment_dataloader__collate_fn(
-    PipeClass: ExperimentAxisQueryIterDataPipe | ExperimentAxisQueryIterableDataset,
+    PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     batch_size: int,
 ) -> None:
