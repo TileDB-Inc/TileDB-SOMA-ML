@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Optional, Sequence, Tuple
 from unittest.mock import patch
 
 import numpy as np
@@ -34,11 +34,11 @@ assert_array_equal = partial(np.testing.assert_array_equal, strict=True)
 
 # These control which classes are tested (for most, but not all tests).
 # Centralized to allow easy add/delete of specific test parameters.
-PipeClassType = Union[
-    ExperimentAxisQueryIterable,
-    ExperimentAxisQueryIterDataPipe,
-    ExperimentAxisQueryIterableDataset,
-]
+PipeClassType = (
+    ExperimentAxisQueryIterable
+    | ExperimentAxisQueryIterDataPipe
+    | ExperimentAxisQueryIterableDataset
+)
 PipeClasses = (
     ExperimentAxisQueryIterable,
     ExperimentAxisQueryIterDataPipe,
@@ -122,8 +122,8 @@ def add_sparse_array(
 @pytest.fixture(scope="function")
 def soma_experiment(
     tmp_path: Path,
-    obs_range: Union[int, range],
-    var_range: Union[int, range],
+    obs_range: int | range,
+    var_range: int | range,
     X_value_gen: XValueGen,
     obsp_layer_names: Sequence[str],
     varp_layer_names: Sequence[str],

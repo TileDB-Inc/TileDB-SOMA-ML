@@ -65,7 +65,7 @@ class _ExperimentLocator:
 
     uri: str
     tiledb_timestamp_ms: int
-    tiledb_config: Dict[str, Union[str, float]]
+    tiledb_config: Dict[str, str | float]
 
     @classmethod
     def create(cls, experiment: soma.Experiment) -> "_ExperimentLocator":
