@@ -22,12 +22,12 @@ from tiledbsoma import Experiment, Measurement
 from tiledbsoma._collection import Collection, CollectionBase
 from torch.utils.data._utils.worker import WorkerInfo
 
+from tiledbsoma_ml.dataloader import experiment_dataloader
 from tiledbsoma_ml.pytorch import (
     ExperimentAxisQueryIterable,
     ExperimentAxisQueryIterableDataset,
     ExperimentAxisQueryIterDataPipe,
     NDArrayNumber,
-    experiment_dataloader,
 )
 
 assert_array_equal = partial(np.testing.assert_array_equal, strict=True)
