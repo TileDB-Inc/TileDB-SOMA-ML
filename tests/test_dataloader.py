@@ -21,10 +21,10 @@ from tiledbsoma_ml import (
 )
 from tiledbsoma_ml.pytorch import NDArrayNumber
 
-IterableWrapperType = (
+PipeClassType = (
     Type[ExperimentAxisQueryIterDataPipe] | Type[ExperimentAxisQueryIterableDataset]
 )
-iterable_wrappers = pytest.mark.parametrize(
+pipeclasses = pytest.mark.parametrize(
     "PipeClass", (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset)
 )
 
@@ -32,9 +32,9 @@ iterable_wrappers = pytest.mark.parametrize(
 @pytest.mark.parametrize(
     "obs_range,var_range,X_value_gen", [(6, 3, pytorch_x_value_gen)]
 )
-@iterable_wrappers
+@pipeclasses
 def test_multiprocessing__returns_full_result(
-    PipeClass: IterableWrapperType,
+    PipeClass: PipeClassType,
     soma_experiment: Experiment,
 ):
     """Tests the ExperimentAxisQueryIterDataPipe provides all data, as collected from multiple processes that are managed by a
@@ -61,9 +61,9 @@ def test_multiprocessing__returns_full_result(
     "obs_range,var_range,X_value_gen", [(3, 3, pytorch_x_value_gen)]
 )
 @eager_lazy
-@iterable_wrappers
+@pipeclasses
 def test_experiment_dataloader__non_batched(
-    PipeClass: IterableWrapperType,
+    PipeClass: PipeClassType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
 ):
@@ -89,9 +89,9 @@ def test_experiment_dataloader__non_batched(
     [(6, 3, pytorch_x_value_gen)],
 )
 @eager_lazy
-@iterable_wrappers
+@pipeclasses
 def test_experiment_dataloader__batched(
-    PipeClass: IterableWrapperType,
+    PipeClass: PipeClassType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
 ):
@@ -117,9 +117,9 @@ def test_experiment_dataloader__batched(
     [(10, 3, pytorch_x_value_gen)],
 )
 @eager_lazy
-@iterable_wrappers
+@pipeclasses
 def test_experiment_dataloader__batched_length(
-    PipeClass: IterableWrapperType,
+    PipeClass: PipeClassType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
 ):
@@ -139,9 +139,9 @@ def test_experiment_dataloader__batched_length(
     "obs_range,var_range,X_value_gen,batch_size",
     [(10, 3, pytorch_x_value_gen, batch_size) for batch_size in (1, 3, 10)],
 )
-@iterable_wrappers
+@pipeclasses
 def test_experiment_dataloader__collate_fn(
-    PipeClass: IterableWrapperType,
+    PipeClass: PipeClassType,
     soma_experiment: Experiment,
     batch_size: int,
 ):
