@@ -168,7 +168,7 @@ def test_non_batched(
     soma_experiment: Experiment,
     use_eager_fetch: bool,
     return_sparse_X: bool,
-) -> None:
+):
     """Check batches of size 1 (the default)"""
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         exp_data_pipe = PipeClass(
@@ -212,7 +212,7 @@ def test_uneven_soma_and_result_batches(
     soma_experiment: Experiment,
     use_eager_fetch: bool,
     return_sparse_X: bool,
-) -> None:
+):
     """Check that batches are correctly created when they require fetching multiple chunks."""
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         exp_data_pipe = PipeClass(
@@ -260,7 +260,7 @@ def test_batching__all_batches_full_size(
     soma_experiment: Experiment,
     use_eager_fetch: bool,
     return_sparse_X: bool,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         exp_data_pipe = PipeClass(
             query,
@@ -301,7 +301,7 @@ def test_soma_joinids(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         exp_data_pipe = PipeClass(
             query,
@@ -330,7 +330,7 @@ def test_batching__partial_final_batch_size(
     soma_experiment: Experiment,
     use_eager_fetch: bool,
     return_sparse_X: bool,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         exp_data_pipe = PipeClass(
             query,
@@ -365,7 +365,7 @@ def test_batching__exactly_one_batch(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         exp_data_pipe = PipeClass(
             query,
@@ -394,7 +394,7 @@ def test_batching__empty_query_result(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
-) -> None:
+):
     with soma_experiment.axis_query(
         measurement_name="RNA", obs_query=AxisQuery(coords=([],))
     ) as query:
@@ -420,7 +420,7 @@ def test_batching__empty_query_result(
 @pytest.mark.parametrize("PipeClass", PipeClasses)
 def test_batching__partial_soma_batches_are_concatenated(
     PipeClass: PipeClassType, soma_experiment: Experiment, use_eager_fetch: bool
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         exp_data_pipe = PipeClass(
             query,
@@ -447,7 +447,7 @@ def test_batching__partial_soma_batches_are_concatenated(
 def test_multiprocessing__returns_full_result(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
-) -> None:
+):
     """Tests the ExperimentAxisQueryIterDataPipe provides all data, as collected from multiple processes that are managed by a
     PyTorch DataLoader with multiple workers configured."""
     with soma_experiment.axis_query(measurement_name="RNA") as query:
@@ -483,7 +483,7 @@ def test_distributed__returns_data_partition_for_rank(
     obs_range: int,
     world_size: int,
     rank: int,
-) -> None:
+):
     """Tests pytorch._partition_obs_joinids() behavior in a simulated PyTorch distributed processing mode,
     using mocks to avoid having to do real PyTorch distributed setup."""
 
@@ -536,7 +536,7 @@ def test_distributed_and_multiprocessing__returns_data_partition_for_rank(
     world_size: int,
     num_workers: int,
     splits: list[list[int]],
-) -> None:
+):
     """Tests pytorch._partition_obs_joinids() behavior in a simulated PyTorch distributed processing mode and
     DataLoader multiprocessing mode, using mocks to avoid having to do distributed pytorch
     setup or real DataLoader multiprocessing."""
@@ -589,7 +589,7 @@ def test_experiment_dataloader__non_batched(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         dp = PipeClass(
             query,
@@ -619,7 +619,7 @@ def test_experiment_dataloader__batched(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         dp = PipeClass(
             query,
@@ -650,7 +650,7 @@ def test_experiment_dataloader__batched_length(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     use_eager_fetch: bool,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         dp = PipeClass(
             query,
@@ -675,7 +675,7 @@ def test_experiment_dataloader__collate_fn(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
     batch_size: int,
-) -> None:
+):
     def collate_fn(
         batch_size: int, data: Tuple[npt.NDArray[np.number[Any]], pd.DataFrame]
     ) -> Tuple[npt.NDArray[np.number[Any]], pd.DataFrame]:
@@ -706,7 +706,7 @@ def test_experiment_dataloader__collate_fn(
 )
 def test__pytorch_splitting(
     soma_experiment: Experiment,
-) -> None:
+):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         dp = ExperimentAxisQueryIterDataPipe(
             query,
@@ -723,7 +723,7 @@ def test__pytorch_splitting(
         assert len(all_rows) == 7
 
 
-def test_experiment_dataloader__unsupported_params__fails() -> None:
+def test_experiment_dataloader__unsupported_params__fails():
     with patch(
         "tiledbsoma_ml.pytorch.ExperimentAxisQueryIterDataPipe"
     ) as dummy_exp_data_pipe:
