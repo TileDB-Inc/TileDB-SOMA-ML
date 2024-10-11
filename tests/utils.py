@@ -3,6 +3,7 @@
 #
 # Licensed under the MIT License.
 
+from functools import partial
 from typing import Callable
 
 import numpy as np
@@ -10,6 +11,8 @@ import pyarrow as pa
 import pytest
 from scipy.sparse import coo_matrix, spmatrix
 from tiledbsoma._collection import CollectionBase
+
+assert_array_equal = partial(np.testing.assert_array_equal, strict=True)
 
 XValueGen = Callable[[range, range], spmatrix]
 

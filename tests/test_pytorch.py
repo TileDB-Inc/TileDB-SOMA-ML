@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from functools import partial
 from typing import Type
 from unittest.mock import patch
 
@@ -18,17 +17,12 @@ from somacore import AxisQuery
 from tiledbsoma import Experiment
 from torch.utils.data._utils.worker import WorkerInfo
 
-from tests.utils import (
-    eager_lazy,
-    pytorch_x_value_gen,
-)
+from tests.utils import assert_array_equal, eager_lazy, pytorch_x_value_gen
 from tiledbsoma_ml.pytorch import (
     ExperimentAxisQueryIterable,
     ExperimentAxisQueryIterableDataset,
     ExperimentAxisQueryIterDataPipe,
 )
-
-assert_array_equal = partial(np.testing.assert_array_equal, strict=True)
 
 # These control which classes are tested (for most, but not all tests).
 # Centralized to allow easy add/delete of specific test parameters.

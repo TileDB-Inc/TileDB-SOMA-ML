@@ -10,9 +10,10 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import pytest
+from pandas._testing import assert_frame_equal
 from tiledbsoma import Experiment
 
-from tests.utils import eager_lazy, pytorch_x_value_gen
+from tests.utils import assert_array_equal, eager_lazy, pytorch_x_value_gen
 from tiledbsoma_ml import (
     ExperimentAxisQueryIterableDataset,
     ExperimentAxisQueryIterDataPipe,
@@ -79,8 +80,8 @@ def test_experiment_dataloader__non_batched(
         assert all(obs.shape == (1, 1) for _, obs in batches)
 
         X, obs = batches[0]
-        assert X.tolist() == [0, 1, 0]
-        assert obs["label"].tolist() == ["0"]
+        assert_array_equal(X, np.array([0, 1, 0], dtype=np.float32))
+        assert_frame_equal(obs, pd.DataFrame({"label": ["0"]}))
 
 
 @pytest.mark.parametrize(
@@ -105,8 +106,10 @@ def test_experiment_dataloader__batched(
         batches = list(dl)
 
         X, obs = batches[0]
-        assert X.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
-        assert obs.to_numpy().tolist() == [[0], [1], [2]]
+        assert_array_equal(
+            X, np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32)
+        )
+        assert_frame_equal(obs, pd.DataFrame({"soma_joinid": [0, 1, 2]}))
 
 
 @pytest.mark.parametrize(
