@@ -473,10 +473,15 @@ def test_experiment_axis_query_iterable_error_checks(
             query,
             X_name="raw",
         )
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(
+            NotImplementedError,
+            match="`ExperimentAxisQueryIterable` can only be iterated - does not support mapping",
+        ):
             dp[0]
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="Must specify at least one value in `obs_column_names`"
+        ):
             ExperimentAxisQueryIterable(
                 query,
                 obs_column_names=(),
