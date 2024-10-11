@@ -138,14 +138,18 @@ def test_experiment_dataloader__batched_length(
 
 
 @pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen,batch_size",
-    [(10, 3, pytorch_x_value_gen, batch_size) for batch_size in (1, 3, 10)],
+    "obs_range,var_range,X_value_gen,batch_size,expected_nbatches",
+    [
+        (10, 3, pytorch_x_value_gen, batch_size, expected_nbatches)
+        for batch_size, expected_nbatches in ((1, 10), (3, 4), (10, 1))
+    ],
 )
 @pipeclasses
 def test_experiment_dataloader__collate_fn(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
     batch_size: int,
+    expected_nbatches: int,
 ):
     def collate_fn(
         batch: Tuple[NDArrayNumber, pd.DataFrame]
@@ -170,7 +174,9 @@ def test_experiment_dataloader__collate_fn(
             batch_size=batch_size,
         )
         dl = experiment_dataloader(dp, collate_fn=collate_fn)
-        assert len(list(dl)) > 0
+        batches = list(dl)
+
+    assert len(batches) == expected_nbatches
 
 
 @pytest.mark.parametrize(
