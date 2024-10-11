@@ -9,7 +9,10 @@ import logging
 from typing import Any, TypeVar
 
 import torch
-import torchdata
+from torch.utils.data import DataLoader, IterableDataset
+from torchdata.datapipes.iter import IterDataPipe
+
+from tiledbsoma_ml.pytorch import XObsDatum
 
 logger = logging.getLogger("tiledbsoma_ml.dataloader")
 
@@ -17,9 +20,9 @@ _T = TypeVar("_T")
 
 
 def experiment_dataloader(
-    ds: torchdata.datapipes.iter.IterDataPipe | torch.utils.data.IterableDataset,
+    ds: IterDataPipe[XObsDatum] | IterableDataset[XObsDatum],
     **dataloader_kwargs: Any,
-) -> torch.utils.data.DataLoader:
+) -> DataLoader[XObsDatum]:
     """Factory method for :class:`torch.utils.data.DataLoader`. This method can be used to safely instantiate a
     :class:`torch.utils.data.DataLoader` that works with :class:`tiledbsoma_ml.ExperimentAxisQueryIterableDataset`
     or :class:`tiledbsoma_ml.ExperimentAxisQueryIterDataPipe`.
@@ -67,7 +70,7 @@ def experiment_dataloader(
     if "collate_fn" not in dataloader_kwargs:
         dataloader_kwargs["collate_fn"] = _collate_noop
 
-    return torch.utils.data.DataLoader(
+    return DataLoader(
         ds,
         batch_size=None,  # batching is handled by upstream iterator
         shuffle=False,  # shuffling is handled by upstream iterator
