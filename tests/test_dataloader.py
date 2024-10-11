@@ -189,9 +189,12 @@ def test__pytorch_splitting(soma_experiment: Experiment):
             weights={"train": 0.7, "test": 0.3}, seed=1234
         )
         dl = experiment_dataloader(dp_train)
+        train_batches = list(dl)
+        assert len(train_batches) == 7
 
-        batches = list(dl)
-        assert len(batches) == 7
+        dl = experiment_dataloader(dp_test)
+        test_batches = list(dl)
+        assert len(test_batches) == 3
 
 
 def test_experiment_dataloader__unsupported_params__fails():
