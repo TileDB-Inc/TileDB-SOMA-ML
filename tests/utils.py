@@ -3,22 +3,17 @@
 #
 # Licensed under the MIT License.
 
-from contextlib import contextmanager
 from functools import partial
 from typing import Callable
-from unittest.mock import patch
 
 import numpy as np
 import pyarrow as pa
-import pytest
 from scipy.sparse import coo_matrix, spmatrix
 from tiledbsoma._collection import CollectionBase
 
 assert_array_equal = partial(np.testing.assert_array_equal, strict=True)
 
 XValueGen = Callable[[range, range], spmatrix]
-
-eager_lazy = pytest.mark.parametrize("use_eager_fetch", [True, False])
 
 
 def pytorch_x_value_gen(obs_range: range, var_range: range) -> spmatrix:
@@ -76,16 +71,3 @@ def add_sparse_array(
     )
     tensor = pa.SparseCOOTensor.from_scipy(value_gen(obs_range, var_range))
     a.write(tensor)
-
-
-@contextmanager
-def init_world(world_size: int, rank: int):
-    with (
-        patch("torch.distributed.is_initialized") as mock_dist_is_initialized,
-        patch("torch.distributed.get_rank") as mock_dist_get_rank,
-        patch("torch.distributed.get_world_size") as mock_dist_get_world_size,
-    ):
-        mock_dist_is_initialized.return_value = True
-        mock_dist_get_rank.return_value = rank
-        mock_dist_get_world_size.return_value = world_size
-        yield

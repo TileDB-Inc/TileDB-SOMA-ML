@@ -49,6 +49,7 @@ classifiers = [
 test = [
     "pytest",
     "pytest-cov",
+    "utz[test]==0.10.0",
 ]
 
 [project.urls]

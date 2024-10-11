@@ -3,153 +3,87 @@
 #
 # Licensed under the MIT License.
 
-from typing import Tuple, Type
+from __future__ import annotations
+
+from functools import partial
+from typing import Tuple
 from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
 import pytest
 from pandas._testing import assert_frame_equal
-from tiledbsoma import Experiment
+from utz import parametrize
 
-from tests.utils import assert_array_equal, eager_lazy, pytorch_x_value_gen
+from tests.case import Case
+from tests.utils import assert_array_equal
 from tiledbsoma_ml import (
     ExperimentAxisQueryIterableDataset,
     ExperimentAxisQueryIterDataPipe,
     experiment_dataloader,
 )
-from tiledbsoma_ml.pytorch import NDArrayNumber
-
-PipeClassType = (
-    Type[ExperimentAxisQueryIterDataPipe] | Type[ExperimentAxisQueryIterableDataset]
-)
-pipeclasses = pytest.mark.parametrize(
-    "PipeClass", (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset)
+from tiledbsoma_ml.pytorch import (
+    NDArrayNumber,
+    XObsDatum,
 )
 
-
-@pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen", [(6, 3, pytorch_x_value_gen)]
+# Only test the DataPipe and Dataset classes in this file
+# (they each wrap ``ExperimentAxisQueryIterable``)
+pipeclasses = partial(
+    parametrize,
+    PipeClass=(
+        ExperimentAxisQueryIterDataPipe,
+        ExperimentAxisQueryIterableDataset,
+    ),
 )
-@pipeclasses
-def test_multiprocessing__returns_full_result(
-    PipeClass: PipeClassType,
-    soma_experiment: Experiment,
-):
-    """Tests the ExperimentAxisQueryIterDataPipe provides all data, as collected from multiple processes that are managed by a
-    PyTorch DataLoader with multiple workers configured."""
-    with soma_experiment.axis_query(measurement_name="RNA") as query:
-        dp = PipeClass(
-            query,
-            X_name="raw",
-            obs_column_names=["soma_joinid", "label"],
-            io_batch_size=3,  # two chunks, one per worker
-        )
-        # Note we're testing the ExperimentAxisQueryIterDataPipe via a DataLoader, since this is what sets up the multiprocessing
-        dl = experiment_dataloader(dp, num_workers=2)
-
-        batches = list(dl)
-
-        soma_joinids = np.concatenate(
-            [obs["soma_joinid"].to_numpy() for _, obs in batches]
-        )
-        assert sorted(soma_joinids) == list(range(6))
+pipeclasses_eagerlazy = partial(pipeclasses, use_eager_fetch=[True, False])
 
 
-@pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen", [(3, 3, pytorch_x_value_gen)]
+@pipeclasses(
+    Case(
+        obs_range=6,
+        obs_column_names=["soma_joinid", "label"],
+        io_batch_size=3,  # two chunks, one per worker
+        num_workers=2,
+    )
 )
-@eager_lazy
-@pipeclasses
-def test_experiment_dataloader__non_batched(
-    PipeClass: PipeClassType,
-    soma_experiment: Experiment,
-    use_eager_fetch: bool,
-):
-    with soma_experiment.axis_query(measurement_name="RNA") as query:
-        dp = PipeClass(
-            query,
-            X_name="raw",
-            obs_column_names=["label"],
-            shuffle=False,
-            use_eager_fetch=use_eager_fetch,
-        )
-        dl = experiment_dataloader(dp)
-        batches = list(dl)
-        for X, obs in batches:
-            assert X.shape == (3,)
-            assert obs.shape == (1, 1)
-
-        X, obs = batches[0]
-        assert_array_equal(X, np.array([0, 1, 0], dtype=np.float32))
-        assert_frame_equal(obs, pd.DataFrame({"label": ["0"]}))
+def test_multiprocessing__returns_full_result(batches: list[XObsDatum]):
+    """Test that ``ExperimentAxisQueryIter*Data{set,Pipe}`` provides all data, as collected from
+    multiple processes managed by a PyTorch DataLoader with multiple workers."""
+    soma_joinids = np.concatenate([t[1]["soma_joinid"].to_numpy() for t in batches])
+    assert sorted(soma_joinids) == list(range(6))
 
 
-@pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen",
-    [(6, 3, pytorch_x_value_gen)],
-)
-@eager_lazy
-@pipeclasses
-def test_experiment_dataloader__batched(
-    PipeClass: PipeClassType,
-    soma_experiment: Experiment,
-    use_eager_fetch: bool,
-):
-    with soma_experiment.axis_query(measurement_name="RNA") as query:
-        dp = PipeClass(
-            query,
-            X_name="raw",
-            batch_size=3,
-            shuffle=False,
-            use_eager_fetch=use_eager_fetch,
-        )
-        dl = experiment_dataloader(dp)
-        batches = list(dl)
+@pipeclasses_eagerlazy(Case(obs_range=3, obs_column_names=["label"], shuffle=False))
+def test_experiment_dataloader__non_batched(batches):
+    for X, obs in batches:
+        assert X.shape == (3,)
+        assert obs.shape == (1, 1)
 
-        X, obs = batches[0]
-        assert_array_equal(
-            X, np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32)
-        )
-        assert_frame_equal(obs, pd.DataFrame({"soma_joinid": [0, 1, 2]}))
+    X, obs = batches[0]
+    assert_array_equal(X, np.array([0, 1, 0], dtype=np.float32))
+    assert_frame_equal(obs, pd.DataFrame({"label": ["0"]}))
 
 
-@pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen",
-    [(10, 3, pytorch_x_value_gen)],
-)
-@eager_lazy
-@pipeclasses
-def test_experiment_dataloader__batched_length(
-    PipeClass: PipeClassType,
-    soma_experiment: Experiment,
-    use_eager_fetch: bool,
-):
-    with soma_experiment.axis_query(measurement_name="RNA") as query:
-        dp = PipeClass(
-            query,
-            X_name="raw",
-            obs_column_names=["label"],
-            batch_size=3,
-            use_eager_fetch=use_eager_fetch,
-        )
-        dl = experiment_dataloader(dp)
+@pipeclasses_eagerlazy(Case(obs_range=6, batch_size=3, shuffle=False))
+def test_experiment_dataloader__batched(batches):
+    X, obs = batches[0]
+    assert_array_equal(X, np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
+    assert_frame_equal(obs, pd.DataFrame({"soma_joinid": [0, 1, 2]}))
+
+
+@pipeclasses_eagerlazy(Case(obs_range=10))
+def test_experiment_dataloader__batched_length(dataloader):
+    with dataloader() as dl:
         assert len(dl) == len(list(dl))
 
 
-@pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen,batch_size,expected_nbatches",
-    [
-        (10, 3, pytorch_x_value_gen, batch_size, expected_nbatches)
-        for batch_size, expected_nbatches in ((1, 10), (3, 4), (10, 1))
-    ],
+@pipeclasses(
+    Case(obs_range=10, batch_size=batch_size, expected_nbatches=expected_nbatches)
+    for batch_size, expected_nbatches in [(1, 10), (3, 4), (10, 1)]
 )
-@pipeclasses
 def test_experiment_dataloader__collate_fn(
-    PipeClass: PipeClassType,
-    soma_experiment: Experiment,
-    batch_size: int,
-    expected_nbatches: int,
+    dataloader, batch_size: int, expected_nbatches: int
 ):
     def collate_fn(
         batch: Tuple[NDArrayNumber, pd.DataFrame]
@@ -166,29 +100,17 @@ def test_experiment_dataloader__collate_fn(
         assert obs.shape[1] <= batch_size
         return batch
 
-    with soma_experiment.axis_query(measurement_name="RNA") as query:
-        dp = PipeClass(
-            query,
-            X_name="raw",
-            obs_column_names=["label"],
-            batch_size=batch_size,
-        )
-        dl = experiment_dataloader(dp, collate_fn=collate_fn)
+    with dataloader(collate_fn=collate_fn) as dl:
         batches = list(dl)
 
     assert len(batches) == expected_nbatches
 
 
-@pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen", [(10, 1, pytorch_x_value_gen)]
+@parametrize(
+    Case(obs_range=10, var_range=1, obs_column_names=["label"]),
 )
-def test__pytorch_splitting(soma_experiment: Experiment):
-    with soma_experiment.axis_query(measurement_name="RNA") as query:
-        dp = ExperimentAxisQueryIterDataPipe(
-            query,
-            X_name="raw",
-            obs_column_names=["label"],
-        )
+def test__pytorch_splitting(datapipe):
+    with datapipe as dp:
         # ``random_split`` not available for ``IterableDataset``, yet...
         dp_train, dp_test = dp.random_split(
             weights={"train": 0.7, "test": 0.3}, seed=1234
