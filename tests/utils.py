@@ -5,7 +5,7 @@
 
 from contextlib import contextmanager
 from functools import partial
-from typing import Callable, Generator
+from typing import Callable
 from unittest.mock import patch
 
 import numpy as np
@@ -79,7 +79,7 @@ def add_sparse_array(
 
 
 @contextmanager
-def init_world(world_size: int, rank: int) -> Generator[None, None, None]:
+def init_world(world_size: int, rank: int):
     with (
         patch("torch.distributed.is_initialized") as mock_dist_is_initialized,
         patch("torch.distributed.get_rank") as mock_dist_get_rank,

@@ -9,6 +9,7 @@ import itertools
 import sys
 from itertools import islice
 from typing import (
+    Generator,
     Iterable,
     Iterator,
     Tuple,
@@ -19,6 +20,7 @@ import numpy as np
 import numpy.typing as npt
 
 _T_co = TypeVar("_T_co", covariant=True)
+Yield = Generator[_T_co, None, None]
 
 
 def splits(total_length: int, sections: int) -> npt.NDArray[np.intp]:

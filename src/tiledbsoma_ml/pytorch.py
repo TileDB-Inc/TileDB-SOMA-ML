@@ -16,7 +16,6 @@ from typing import (
     Any,
     ContextManager,
     Dict,
-    Generator,
     Iterable,
     Iterator,
     Sequence,
@@ -35,7 +34,7 @@ import torch
 import torchdata
 from somacore.query._eager_iter import EagerIterator as _EagerIterator
 
-from tiledbsoma_ml._utils import batched, splits
+from tiledbsoma_ml._utils import Yield, batched, splits
 
 logger = logging.getLogger("tiledbsoma_ml.pytorch")
 
@@ -74,7 +73,7 @@ class _ExperimentLocator:
         )
 
     @contextmanager
-    def open_experiment(self) -> Generator[soma.Experiment, None, None]:
+    def open_experiment(self) -> Yield[soma.Experiment]:
         context = soma.SOMATileDBContext(tiledb_config=self.tiledb_config)
         yield soma.Experiment.open(
             self.uri, tiledb_timestamp=self.tiledb_timestamp_ms, context=context
