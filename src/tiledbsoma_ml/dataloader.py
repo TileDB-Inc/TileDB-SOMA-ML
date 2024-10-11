@@ -18,6 +18,13 @@ logger = logging.getLogger("tiledbsoma_ml.dataloader")
 
 _T = TypeVar("_T")
 
+UNSUPPORTED_ARGS = {
+    "shuffle",
+    "batch_size",
+    "sampler",
+    "batch_sampler",
+}
+
 
 def experiment_dataloader(
     ds: IterDataPipe[XObsDatum] | IterableDataset[XObsDatum],
@@ -53,21 +60,16 @@ def experiment_dataloader(
     Lifecycle:
         experimental
     """
-    unsupported_dataloader_args = [
-        "shuffle",
-        "batch_size",
-        "sampler",
-        "batch_sampler",
-    ]
-    if set(unsupported_dataloader_args).intersection(dataloader_kwargs.keys()):
+    if unsupported_args := UNSUPPORTED_ARGS.intersection(dataloader_kwargs):
         raise ValueError(
-            f"The {','.join(unsupported_dataloader_args)} DataLoader parameters are not supported"
+            f"The {','.join(unsupported_args)} DataLoader parameters are not supported"
         )
 
     if dataloader_kwargs.get("num_workers", 0) > 0:
         _init_multiprocessing()
 
     if "collate_fn" not in dataloader_kwargs:
+        # PyTorch's default collate_fn manipulates batches, which we don't want; replace it with a no-op.
         dataloader_kwargs["collate_fn"] = _collate_noop
 
     return DataLoader(
