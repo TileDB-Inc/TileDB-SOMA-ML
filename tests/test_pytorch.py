@@ -156,13 +156,21 @@ def soma_experiment(
     return Experiment.open((tmp_path / "exp").as_posix())
 
 
+pipeclasses = pytest.mark.parametrize("PipeClass", PipeClasses)
+iterable_wrappers = pytest.mark.parametrize(
+    "PipeClass", (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset)
+)
+eager_lazy = pytest.mark.parametrize("use_eager_fetch", [True, False])
+sparse_dense = pytest.mark.parametrize("return_sparse_X", [True, False])
+
+
 @pytest.mark.parametrize(
     "obs_range,var_range,X_value_gen",
     [(6, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("return_sparse_X", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@sparse_dense
+@pipeclasses
 def test_non_batched(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -204,9 +212,9 @@ def test_non_batched(
     "obs_range,var_range,X_value_gen",
     [(6, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("return_sparse_X", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@sparse_dense
+@pipeclasses
 def test_uneven_soma_and_result_batches(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -252,9 +260,9 @@ def test_uneven_soma_and_result_batches(
     "obs_range,var_range,X_value_gen",
     [(6, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("return_sparse_X", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@sparse_dense
+@pipeclasses
 def test_batching__all_batches_full_size(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -295,8 +303,8 @@ def test_batching__all_batches_full_size(
     "obs_range,var_range,X_value_gen",
     [(range(100_000_000, 100_000_003), 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@pipeclasses
 def test_soma_joinids(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -322,9 +330,9 @@ def test_soma_joinids(
     "obs_range,var_range,X_value_gen",
     [(5, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("return_sparse_X", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@sparse_dense
+@pipeclasses
 def test_batching__partial_final_batch_size(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -359,8 +367,8 @@ def test_batching__partial_final_batch_size(
     "obs_range,var_range,X_value_gen",
     [(3, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@pipeclasses
 def test_batching__exactly_one_batch(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -388,8 +396,8 @@ def test_batching__exactly_one_batch(
     "obs_range,var_range,X_value_gen",
     [(6, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@pipeclasses
 def test_batching__empty_query_result(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -416,8 +424,8 @@ def test_batching__empty_query_result(
     "obs_range,var_range,X_value_gen",
     [(10, 1, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize("use_eager_fetch", [True, False])
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@eager_lazy
+@pipeclasses
 def test_batching__partial_soma_batches_are_concatenated(
     PipeClass: PipeClassType, soma_experiment: Experiment, use_eager_fetch: bool
 ):
@@ -440,10 +448,7 @@ def test_batching__partial_soma_batches_are_concatenated(
 @pytest.mark.parametrize(
     "obs_range,var_range,X_value_gen", [(6, 3, pytorch_x_value_gen)]
 )
-@pytest.mark.parametrize(
-    "PipeClass",
-    (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
-)
+@iterable_wrappers
 def test_multiprocessing__returns_full_result(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
@@ -476,7 +481,7 @@ def test_multiprocessing__returns_full_result(
     "world_size,rank",
     [(3, 0), (3, 1), (3, 2), (2, 0), (2, 1)],
 )
-@pytest.mark.parametrize("PipeClass", PipeClasses)
+@pipeclasses
 def test_distributed__returns_data_partition_for_rank(
     PipeClass: PipeClassType,
     soma_experiment: Experiment,
@@ -578,13 +583,10 @@ def test_distributed_and_multiprocessing__returns_data_partition_for_rank(
 
 
 @pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen,use_eager_fetch",
-    [(3, 3, pytorch_x_value_gen, use_eager_fetch) for use_eager_fetch in (True, False)],
+    "obs_range,var_range,X_value_gen", [(3, 3, pytorch_x_value_gen)]
 )
-@pytest.mark.parametrize(
-    "PipeClass",
-    (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
-)
+@eager_lazy
+@iterable_wrappers
 def test_experiment_dataloader__non_batched(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
@@ -608,13 +610,11 @@ def test_experiment_dataloader__non_batched(
 
 
 @pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen,use_eager_fetch",
-    [(6, 3, pytorch_x_value_gen, use_eager_fetch) for use_eager_fetch in (True, False)],
+    "obs_range,var_range,X_value_gen",
+    [(6, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize(
-    "PipeClass",
-    (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
-)
+@eager_lazy
+@iterable_wrappers
 def test_experiment_dataloader__batched(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
@@ -636,16 +636,11 @@ def test_experiment_dataloader__batched(
 
 
 @pytest.mark.parametrize(
-    "obs_range,var_range,X_value_gen,use_eager_fetch",
-    [
-        (10, 3, pytorch_x_value_gen, use_eager_fetch)
-        for use_eager_fetch in (True, False)
-    ],
+    "obs_range,var_range,X_value_gen",
+    [(10, 3, pytorch_x_value_gen)],
 )
-@pytest.mark.parametrize(
-    "PipeClass",
-    (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
-)
+@eager_lazy
+@iterable_wrappers
 def test_experiment_dataloader__batched_length(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
@@ -667,10 +662,7 @@ def test_experiment_dataloader__batched_length(
     "obs_range,var_range,X_value_gen,batch_size",
     [(10, 3, pytorch_x_value_gen, batch_size) for batch_size in (1, 3, 10)],
 )
-@pytest.mark.parametrize(
-    "PipeClass",
-    (ExperimentAxisQueryIterDataPipe, ExperimentAxisQueryIterableDataset),
-)
+@iterable_wrappers
 def test_experiment_dataloader__collate_fn(
     PipeClass: IterableWrapperType,
     soma_experiment: Experiment,
