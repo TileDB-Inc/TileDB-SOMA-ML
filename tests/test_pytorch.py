@@ -7,11 +7,10 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Optional, Sequence, Tuple, Type
+from typing import Callable, Optional, Sequence, Tuple, Type
 from unittest.mock import patch
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -27,6 +26,7 @@ from tiledbsoma_ml.pytorch import (
     ExperimentAxisQueryIterable,
     ExperimentAxisQueryIterableDataset,
     ExperimentAxisQueryIterDataPipe,
+    NDArrayNumber,
     experiment_dataloader,
 )
 
@@ -669,8 +669,8 @@ def test_experiment_dataloader__collate_fn(
     batch_size: int,
 ):
     def collate_fn(
-        batch_size: int, data: Tuple[npt.NDArray[np.number[Any]], pd.DataFrame]
-    ) -> Tuple[npt.NDArray[np.number[Any]], pd.DataFrame]:
+        batch_size: int, data: Tuple[NDArrayNumber, pd.DataFrame]
+    ) -> Tuple[NDArrayNumber, pd.DataFrame]:
         assert isinstance(data, tuple)
         assert len(data) == 2
         assert isinstance(data[0], np.ndarray) and isinstance(data[1], pd.DataFrame)
