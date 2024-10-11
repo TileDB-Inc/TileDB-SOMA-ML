@@ -188,24 +188,24 @@ def test_non_batched(
         )
         assert exp_data_pipe.shape == (6, 3)
         batch_iter = iter(exp_data_pipe)
-        for idx, (X_batch, obs_batch) in enumerate(batch_iter):
+        for idx, (X, obs) in enumerate(batch_iter):
             expected_X = [0, 1, 0] if idx % 2 == 0 else [1, 0, 1]
             if return_sparse_X:
-                assert isinstance(X_batch, sparse.csr_matrix)
+                assert isinstance(X, sparse.csr_matrix)
                 # Sparse slices are always 2D
-                assert X_batch.shape == (1, 3)
-                assert X_batch.todense().tolist() == [expected_X]
+                assert X.shape == (1, 3)
+                assert X.todense().tolist() == [expected_X]
             else:
-                assert isinstance(X_batch, np.ndarray)
+                assert isinstance(X, np.ndarray)
                 if PipeClass is ExperimentAxisQueryIterable:
-                    assert X_batch.shape == (1, 3)
-                    assert X_batch.tolist() == [expected_X]
+                    assert X.shape == (1, 3)
+                    assert X.tolist() == [expected_X]
                 else:
                     # ExperimentAxisQueryIterData{Pipe,set} "squeeze" dense single-row batches
-                    assert X_batch.shape == (3,)
-                    assert X_batch.tolist() == expected_X
+                    assert X.shape == (3,)
+                    assert X.tolist() == expected_X
 
-            assert_frame_equal(obs_batch, pd.DataFrame({"label": [str(idx)]}))
+            assert_frame_equal(obs, pd.DataFrame({"label": [str(idx)]}))
 
 
 @pytest.mark.parametrize(
@@ -235,25 +235,25 @@ def test_uneven_soma_and_result_batches(
         assert exp_data_pipe.shape == (2, 3)
         batch_iter = iter(exp_data_pipe)
 
-        X_batch, obs_batch = next(batch_iter)
-        assert X_batch.shape == (3, 3)
+        X, obs = next(batch_iter)
+        assert X.shape == (3, 3)
         if return_sparse_X:
-            assert isinstance(X_batch, sparse.csr_matrix)
-            X_batch = X_batch.todense()
+            assert isinstance(X, sparse.csr_matrix)
+            X = X.todense()
         else:
-            assert isinstance(X_batch, np.ndarray)
-        assert X_batch.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
-        assert_frame_equal(obs_batch, pd.DataFrame({"label": ["0", "1", "2"]}))
+            assert isinstance(X, np.ndarray)
+        assert X.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
+        assert_frame_equal(obs, pd.DataFrame({"label": ["0", "1", "2"]}))
 
-        X_batch, obs_batch = next(batch_iter)
-        assert X_batch.shape == (3, 3)
+        X, obs = next(batch_iter)
+        assert X.shape == (3, 3)
         if return_sparse_X:
-            assert isinstance(X_batch, sparse.csr_matrix)
-            X_batch = X_batch.todense()
+            assert isinstance(X, sparse.csr_matrix)
+            X = X.todense()
         else:
-            assert isinstance(X_batch, np.ndarray)
-        assert X_batch.tolist() == [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
-        assert_frame_equal(obs_batch, pd.DataFrame({"label": ["3", "4", "5"]}))
+            assert isinstance(X, np.ndarray)
+        assert X.tolist() == [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
+        assert_frame_equal(obs, pd.DataFrame({"label": ["3", "4", "5"]}))
 
 
 @pytest.mark.parametrize(
@@ -281,19 +281,19 @@ def test_batching__all_batches_full_size(
         batch_iter = iter(exp_data_pipe)
         assert exp_data_pipe.shape == (2, 3)
 
-        X_batch, obs_batch = next(batch_iter)
+        X, obs = next(batch_iter)
         if return_sparse_X:
-            assert isinstance(X_batch, sparse.csr_matrix)
-            X_batch = X_batch.todense()
-        assert X_batch.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
-        assert_frame_equal(obs_batch, pd.DataFrame({"label": ["0", "1", "2"]}))
+            assert isinstance(X, sparse.csr_matrix)
+            X = X.todense()
+        assert X.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
+        assert_frame_equal(obs, pd.DataFrame({"label": ["0", "1", "2"]}))
 
-        X_batch, obs_batch = next(batch_iter)
+        X, obs = next(batch_iter)
         if return_sparse_X:
-            assert isinstance(X_batch, sparse.csr_matrix)
-            X_batch = X_batch.todense()
-        assert X_batch.tolist() == [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
-        assert_frame_equal(obs_batch, pd.DataFrame({"label": ["3", "4", "5"]}))
+            assert isinstance(X, sparse.csr_matrix)
+            X = X.todense()
+        assert X.tolist() == [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
+        assert_frame_equal(obs, pd.DataFrame({"label": ["3", "4", "5"]}))
 
         with pytest.raises(StopIteration):
             next(batch_iter)
@@ -352,12 +352,12 @@ def test_batching__partial_final_batch_size(
         batch_iter = iter(exp_data_pipe)
 
         next(batch_iter)
-        X_batch, obs_batch = next(batch_iter)
+        X, obs = next(batch_iter)
         if return_sparse_X:
-            assert isinstance(X_batch, sparse.csr_matrix)
-            X_batch = X_batch.todense()
-        assert X_batch.tolist() == [[1, 0, 1], [0, 1, 0]]
-        assert_frame_equal(obs_batch, pd.DataFrame({"label": ["3", "4"]}))
+            assert isinstance(X, sparse.csr_matrix)
+            X = X.todense()
+        assert X.tolist() == [[1, 0, 1], [0, 1, 0]]
+        assert_frame_equal(obs, pd.DataFrame({"label": ["3", "4"]}))
 
         with pytest.raises(StopIteration):
             next(batch_iter)
@@ -384,9 +384,9 @@ def test_batching__exactly_one_batch(
         )
         assert exp_data_pipe.shape == (1, 3)
         batch_iter = iter(exp_data_pipe)
-        X_batch, obs_batch = next(batch_iter)
-        assert X_batch.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
-        assert_frame_equal(obs_batch, pd.DataFrame({"label": ["0", "1", "2"]}))
+        X, obs = next(batch_iter)
+        assert X.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
+        assert_frame_equal(obs, pd.DataFrame({"label": ["0", "1", "2"]}))
 
         with pytest.raises(StopIteration):
             next(batch_iter)
@@ -442,7 +442,7 @@ def test_batching__partial_soma_batches_are_concatenated(
 
         batches = list(exp_data_pipe)
 
-        assert [len(batch[0]) for batch in batches] == [3, 3, 3, 1]
+        assert [len(X) for X, _ in batches] == [3, 3, 3, 1]
 
 
 @pytest.mark.parametrize(
@@ -465,10 +465,10 @@ def test_multiprocessing__returns_full_result(
         # Note we're testing the ExperimentAxisQueryIterDataPipe via a DataLoader, since this is what sets up the multiprocessing
         dl = experiment_dataloader(dp, num_workers=2)
 
-        full_result = list(iter(dl))
+        batches = list(iter(dl))
 
         soma_joinids = np.concatenate(
-            [t[1]["soma_joinid"].to_numpy() for t in full_result]
+            [obs["soma_joinid"].to_numpy() for _, obs in batches]
         )
         assert sorted(soma_joinids) == list(range(6))
 
@@ -600,13 +600,13 @@ def test_experiment_dataloader__non_batched(
             use_eager_fetch=use_eager_fetch,
         )
         dl = experiment_dataloader(dp)
-        data = [row for row in dl]
-        assert all(d[0].shape == (3,) for d in data)
-        assert all(d[1].shape == (1, 1) for d in data)
+        batches = list(dl)
+        assert all(X.shape == (3,) for X, _ in batches)
+        assert all(obs.shape == (1, 1) for _, obs in batches)
 
-        row = data[0]
-        assert row[0].tolist() == [0, 1, 0]
-        assert row[1]["label"].tolist() == ["0"]
+        X, obs = batches[0]
+        assert X.tolist() == [0, 1, 0]
+        assert obs["label"].tolist() == ["0"]
 
 
 @pytest.mark.parametrize(
@@ -628,11 +628,11 @@ def test_experiment_dataloader__batched(
             use_eager_fetch=use_eager_fetch,
         )
         dl = experiment_dataloader(dp)
-        data = [row for row in dl]
+        batches = list(dl)
 
-        batch = data[0]
-        assert batch[0].tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
-        assert batch[1].to_numpy().tolist() == [[0], [1], [2]]
+        X, obs = batches[0]
+        assert X.tolist() == [[0, 1, 0], [1, 0, 1], [0, 1, 0]]
+        assert obs.to_numpy().tolist() == [[0], [1], [2]]
 
 
 @pytest.mark.parametrize(
@@ -669,18 +669,19 @@ def test_experiment_dataloader__collate_fn(
     batch_size: int,
 ):
     def collate_fn(
-        batch_size: int, data: Tuple[NDArrayNumber, pd.DataFrame]
+        batch_size: int, batch: Tuple[NDArrayNumber, pd.DataFrame]
     ) -> Tuple[NDArrayNumber, pd.DataFrame]:
-        assert isinstance(data, tuple)
-        assert len(data) == 2
-        assert isinstance(data[0], np.ndarray) and isinstance(data[1], pd.DataFrame)
+        assert isinstance(batch, tuple)
+        assert len(batch) == 2
+        X, obs = batch
+        assert isinstance(X, np.ndarray) and isinstance(obs, pd.DataFrame)
         if batch_size > 1:
-            assert data[0].shape[0] == data[1].shape[0]
-            assert data[0].shape[0] <= batch_size
+            assert X.shape[0] == obs.shape[0]
+            assert X.shape[0] <= batch_size
         else:
-            assert data[0].ndim == 1
-        assert data[1].shape[1] <= batch_size
-        return data
+            assert X.ndim == 1
+        assert obs.shape[1] <= batch_size
+        return batch
 
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         dp = PipeClass(
@@ -696,9 +697,7 @@ def test_experiment_dataloader__collate_fn(
 @pytest.mark.parametrize(
     "obs_range,var_range,X_value_gen", [(10, 1, pytorch_x_value_gen)]
 )
-def test__pytorch_splitting(
-    soma_experiment: Experiment,
-):
+def test__pytorch_splitting(soma_experiment: Experiment):
     with soma_experiment.axis_query(measurement_name="RNA") as query:
         dp = ExperimentAxisQueryIterDataPipe(
             query,
@@ -711,8 +710,8 @@ def test__pytorch_splitting(
         )
         dl = experiment_dataloader(dp_train)
 
-        all_rows = list(iter(dl))
-        assert len(all_rows) == 7
+        batches = list(iter(dl))
+        assert len(batches) == 7
 
 
 def test_experiment_dataloader__unsupported_params__fails():
