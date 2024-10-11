@@ -184,7 +184,7 @@ def test__pytorch_splitting(soma_experiment: Experiment):
             X_name="raw",
             obs_column_names=["label"],
         )
-        # function not available for IterableDataset, yet....
+        # ``random_split`` not available for ``IterableDataset``, yet...
         dp_train, dp_test = dp.random_split(
             weights={"train": 0.7, "test": 0.3}, seed=1234
         )

@@ -324,7 +324,7 @@ def test_batching__partial_soma_batches_are_concatenated(
             X_name="raw",
             obs_column_names=["label"],
             batch_size=3,
-            # set SOMA batch read size such that PyTorch batches will span the tail and head of two SOMA batches
+            # Set SOMA batch read size such that PyTorch batches will span the tail and head of two SOMA batches
             io_batch_size=4,
             use_eager_fetch=use_eager_fetch,
         )
@@ -453,12 +453,12 @@ def test__shuffle(PipeClass: PipeClassType, soma_experiment: Experiment) -> None
         soma_joinids = [obs["soma_joinid"].iloc[0] for _, obs in batches]
         X_values = [X[0].item() for X, _ in batches]
 
-        # same elements
+        # Same elements
         assert set(soma_joinids) == set(range(16))
-        # not ordered! (...with a `1/16!` probability of being ordered)
+        # Not ordered! (...with a `1/16!` probability of being ordered)
         assert soma_joinids != list(range(16))
-        # randomizes X in same order as obs
-        # note: X values were explicitly set to match obs_joinids to allow for this simple assertion
+        # Randomizes X in same order as obs
+        # Note: X values were explicitly set to match obs_joinids to allow for this simple assertion
         assert X_values == soma_joinids
 
 
