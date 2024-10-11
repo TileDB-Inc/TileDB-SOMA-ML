@@ -3,7 +3,6 @@
 #
 # Licensed under the MIT License.
 
-from functools import partial
 from typing import Tuple, Type
 from unittest.mock import patch
 
@@ -149,7 +148,7 @@ def test_experiment_dataloader__collate_fn(
     batch_size: int,
 ):
     def collate_fn(
-        batch_size: int, batch: Tuple[NDArrayNumber, pd.DataFrame]
+        batch: Tuple[NDArrayNumber, pd.DataFrame]
     ) -> Tuple[NDArrayNumber, pd.DataFrame]:
         assert isinstance(batch, tuple)
         assert len(batch) == 2
@@ -170,7 +169,7 @@ def test_experiment_dataloader__collate_fn(
             obs_column_names=["label"],
             batch_size=batch_size,
         )
-        dl = experiment_dataloader(dp, collate_fn=partial(collate_fn, batch_size))
+        dl = experiment_dataloader(dp, collate_fn=collate_fn)
         assert len(list(dl)) > 0
 
 
