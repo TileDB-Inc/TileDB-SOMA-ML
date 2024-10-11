@@ -465,7 +465,7 @@ def test_multiprocessing__returns_full_result(
         # Note we're testing the ExperimentAxisQueryIterDataPipe via a DataLoader, since this is what sets up the multiprocessing
         dl = experiment_dataloader(dp, num_workers=2)
 
-        batches = list(iter(dl))
+        batches = list(dl)
 
         soma_joinids = np.concatenate(
             [obs["soma_joinid"].to_numpy() for _, obs in batches]
@@ -508,7 +508,7 @@ def test_distributed__returns_data_partition_for_rank(
                 obs_column_names=["soma_joinid"],
                 io_batch_size=2,
             )
-            batches = list(iter(dp))
+            batches = list(dp)
             soma_joinids = np.concatenate(
                 [batch[1]["soma_joinid"].to_numpy() for batch in batches]
             )
@@ -573,7 +573,7 @@ def test_distributed_and_multiprocessing__returns_data_partition_for_rank(
                         io_batch_size=2,
                     )
 
-                    batches = list(iter(dp))
+                    batches = list(dp)
 
                     soma_joinids = np.concatenate(
                         [batch[1]["soma_joinid"].to_numpy() for batch in batches]
@@ -710,7 +710,7 @@ def test__pytorch_splitting(soma_experiment: Experiment):
         )
         dl = experiment_dataloader(dp_train)
 
-        batches = list(iter(dl))
+        batches = list(dl)
         assert len(batches) == 7
 
 
