@@ -646,6 +646,7 @@ class ExperimentAxisQueryIterDataPipe(
             shuffle_chunk_size=shuffle_chunk_size,
         )
 
+
     def __iter__(self) -> Iterator[XObsDatum]:
         """
         See :class:`tiledbsoma_ml.ExperimentAxisQueryIterableDataset` for more information on using this class.
@@ -791,7 +792,7 @@ class ExperimentAxisQueryIterableDataset(
             batch_size:
                 The number of rows of ``X`` and ``obs`` data to return in each iteration. Defaults to ``1``. A value of
                 ``1`` will result in :class:`torch.Tensor` of rank 1 being returned (a single row); larger values will
-                result in :class:`torch.Tensor`\ s of rank 2 (multiple rows).
+                result in :class:`torch.Tensor`s of rank 2 (multiple rows).
 
                 Note that a ``batch_size`` of 1 allows this ``IterableDataset`` to be used with :class:`torch.utils.data.DataLoader`
                 batching, but you will achieve higher performance by performing batching in this class, and setting the ``DataLoader``
