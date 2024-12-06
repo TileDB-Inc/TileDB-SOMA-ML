@@ -463,7 +463,7 @@ class ExperimentAxisQueryIterable(Iterable[XObsDatum]):
                 f"Retrieving next SOMA IO batch of length {len(obs_coords)}..."
             )
 
-            # to maximize optty's for concurrency, when in eager_fetch mode,
+            # To maximize opportunities for concurrency, when in eager_fetch mode,
             # create the X read iterator first, as the eager iterator will begin
             # the read-ahead immediately. Then proceed to fetch obs DataFrame.
             # This matters most on latent backing stores, e.g., S3.
@@ -645,7 +645,6 @@ class ExperimentAxisQueryIterDataPipe(
             use_eager_fetch=use_eager_fetch,
             shuffle_chunk_size=shuffle_chunk_size,
         )
-
 
     def __iter__(self) -> Iterator[XObsDatum]:
         """
