@@ -916,7 +916,7 @@ class ExperimentAxisQueryIterableDataset(
 
 
 def experiment_dataloader(
-    ds: torchdata.datapipes.iter.IterDataPipe | torch.utils.data.IterableDataset,
+    ds: ExperimentAxisQueryIterDataPipe | ExperimentAxisQueryIterableDataset,
     **dataloader_kwargs: Any,
 ) -> torch.utils.data.DataLoader:
     """Factory method for :class:`torch.utils.data.DataLoader`. This method can be used to safely instantiate a
