@@ -720,15 +720,28 @@ def test__pytorch_splitting(
             query,
             X_name="raw",
             obs_column_names=["label"],
+            seed=1234,
         )
         # function not available for IterableDataset, yet....
         dp_train, dp_test = dp.random_split(
             weights={"train": 0.7, "test": 0.3}, seed=1234
         )
-        dl = experiment_dataloader(dp_train)
 
-        all_rows = list(iter(dl))
-        assert len(all_rows) == 7
+        dl_train = experiment_dataloader(dp_train)
+        train_batches = list(iter(dl_train))
+        train_ids = [ int(obs.loc[0, 'label']) for _, obs in train_batches ]
+        assert train_ids == [9, 5, 6, 4, 7, 1, 3]
+
+        dl_test = experiment_dataloader(dp_test)
+        test_batches = list(iter(dl_test))
+        test_ids = [ int(obs.loc[0, 'label']) for _, obs in test_batches ]
+        assert test_ids == [9, 5, 3]  # ❌ want this to be [8, 0, 2] (complement of training set above)
+
+        dp._exp_iter.epoch = 0  # 💡 "Rewind" epoch to 0 ⇒ test data is complement of original training set, as desired
+        dl_test = experiment_dataloader(dp_test)
+        test_batches = list(iter(dl_test))
+        test_ids = [ int(obs.loc[0, 'label']) for _, obs in test_batches ]
+        assert test_ids == [8, 0, 2]  # ✅
 
 
 @pytest.mark.parametrize(
